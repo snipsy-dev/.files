@@ -48,11 +48,6 @@ for (const file of await fs.readdir(imageFiles)) {
     paths.push(_file);
 }
 
-let imgPath = paths[Math.floor(Math.random() * paths.length)];
-
-if (process.env.WSLENV) {
-    imgPath = convertUnixToWin32(imgPath);
-}
 if (!data.profiles.defaults) {
     err(
         [
@@ -62,6 +57,11 @@ if (!data.profiles.defaults) {
     );
 }
 if (!data?.profiles.defaults) {
+    let imgPath = noDupes(paths[Math.floor(Math.random() * paths.length)]);
+
+    if (process.env.WSLENV) {
+        imgPath = convertUnixToWin32(imgPath);
+    }
     data.profiles.defaults = {
         backgroundImageStretchMode:
             process.env.WINDOWS_TERMINAL_BACKGROUND_MODE || 'fill',
@@ -70,6 +70,11 @@ if (!data?.profiles.defaults) {
         backgroundImage: imgPath,
     };
 } else {
+    let imgPath = noDupes(paths[Math.floor(Math.random() * paths.length)]);
+
+    if (process.env.WSLENV) {
+        imgPath = convertUnixToWin32(imgPath);
+    }
     data.profiles.defaults = {
         ...data.profiles.defaults,
         backgroundImageStretchMode:
@@ -94,4 +99,17 @@ function convertUnixToWin32(unixPath) {
     }
     const win32Path = unixPath.split('/').join(path.win32.sep);
     return win32Path;
+}
+/**
+ *
+ * @param {string} imgPath
+ * @returns
+ */
+function noDupes(imgPath) {
+    if (imgPath === data.profiles.defaults.backgroundImage) {
+        imgPath = paths[Math.floor(Math.random() * paths.length)];
+    } else {
+        return imgPath;
+    }
+    return noDupes(imgPath);
 }
